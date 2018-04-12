@@ -1,10 +1,13 @@
 <launch>
 
   <arg name="voxel_size" default="0.2"/>
-  <arg name="generate_esdf" default="true" />
+  <arg name="generate_esdf" default="false" />
 
-   <node name="esdf_server" pkg="voxblox_ros" type="esdf_server" output="screen" args="-alsologtostderr" clear_params="true">
-    <remap from="pointcloud" to="/camera/points2"/>
+   <node name="esdf_listener" pkg="voxblox_ros" type="esdf_server" output="screen" args="-alsologtostderr" clear_params="true">
+    <!-- Don't remap the point cloud topic, so it doesn't try to process point clouds -->
+    <!-- <remap from="pointcloud" to="/camera/points2"/> -->
+    <!-- Changing topic names so it listens to the output of another ESDF Server node -->
+    <remap from="/esdf_listener/esdf_map_in" to="/esdf_server/esdf_map_out"/>
     <param name="tsdf_voxel_size" value="$(arg voxel_size)" />
     <param name="tsdf_voxels_per_side" value="16" />
     <param name="voxel_carving_enabled" value="true" />
@@ -20,7 +23,7 @@
     <param name="max_integration_time_s" value="0.02"/>
     <param name="clear_checks_every_n_frames" value="1"/>
     <param name="output_mesh_as_point_cloud" value="false"/>
-    <param name="publish_esdf_map" value="true"/>
+    <param name="publish_esdf_map" value="false"/>
     <rosparam file="$(find voxblox_ros)/cfg/euroc_dataset.yaml"/>
     <param name="mesh_filename" value="test.ply" />
   </node>
