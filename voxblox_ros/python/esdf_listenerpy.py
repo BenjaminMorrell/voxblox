@@ -1,6 +1,7 @@
 import rospy
 
 import voxblox
+import voxblox_ros
 from voxblox_msgs.msg import Layer
 
 
@@ -17,8 +18,12 @@ def callback(data):
 
   rospy.loginfo("Number of blocks: %d", len(data.blocks))
 
-  esdf_layer = voxblox.EsdfLayer(data.voxel_size,
-                                                data.voxels_per_side)
+  # esdf_layer = voxblox.EsdfLayer(data.voxel_size,
+  #                                               data.voxels_per_side)
+
+
+  
+
 
   # voxblox.EsdfMap
   # self.esdf_layer = voxblox.loadEsdfLayer(filename)
@@ -29,6 +34,8 @@ def listener():
   rospy.init_node('esdf_listenerpy',anonymous=True)
 
   rospy.Subscriber("/esdf_server/esdf_map_out",Layer,callback)
+  
+  # esdfServer = voxblox.EsdfServer()
 
   rospy.spin()
 
