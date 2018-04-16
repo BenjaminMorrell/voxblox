@@ -31,18 +31,32 @@ try:
 except RuntimeError as e:
     print(e)
 
-tl = voxblox.loadTsdfLayer("/Users/mereweth/Desktop/environments/bldg_344_huge/map_cleared.tsdf.proto")
-el = voxblox.EsdfLayer(tl.voxel_size, tl.voxels_per_side)
-m = voxblox.EsdfMap(el)
-ei = voxblox.EsdfIntegrator(voxblox.EsdfIntegratorConfig(), tl, el)
-ei.updateFromTsdfLayerBatch()
+# tl = voxblox.loadTsdfLayer("/Users/mereweth/Desktop/environments/bldg_344_huge/map_cleared.tsdf.proto")
+# el = voxblox.EsdfLayer(tl.voxel_size, tl.voxels_per_side)
+# m = voxblox.EsdfMap(el)
+# ei = voxblox.EsdfIntegrator(voxblox.EsdfIntegratorConfig(), tl, el)
+# ei.updateFromTsdfLayerBatch()
 
-b = tl.allocateBlockPtrByCoordinates(np.array([0, 0, 0.5], dtype='double'))
-v = b.getVoxelByCoordinates(np.array([0, 0, 0.5], dtype='double'))
+# b = tl.allocateBlockPtrByCoordinates(np.array([0, 0, 0.5], dtype='double'))
+# v = b.getVoxelByCoordinates(np.array([0, 0, 0.5], dtype='double'))
 
-v.distance = 0.3
-b.set_updated(True)
+# v.distance = 0.3
+# b.set_updated(True)
 
+e2 = voxblox.loadEsdfLayer("/home/bjm/TORQ/gcs_ws/src/torq/torq_gcs/mesh/344_mess/344_mess_esdf.proto")
+import pdb; pdb.set_trace()
+b2 = e2.allocateBlockPtrByCoordinates(np.array([0, 0, 0.5], dtype='double'))
+v2 = b2.getVoxelByCoordinates(np.array([0, 0, 0.5], dtype='double'))
+
+
+b3 = e2.allocateBlockPtrByIndex(np.array([0, 0, 0], dtype='int')) # query with indexes
+v3 = b3.getVoxelByCoordinates(np.array([0, 0, 0.5], dtype='double'))
+
+v4 = b3.getVoxelByLinearIndex(0)
+
+
+
+import pdb; pdb.set_trace()
 voxblox.clearSphereAroundPoint(el, np.array([0, 0, 0.5], dtype='double'), 0.5)
 voxblox.fillSphereAroundPoint(el, np.array([0, 0, 0.5], dtype='double'), 0.5)
 

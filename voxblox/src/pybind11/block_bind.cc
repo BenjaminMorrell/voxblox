@@ -1,7 +1,10 @@
 #include "voxblox/core/block.h"
 #include "voxblox/core/voxel.h"
-
+// #include <voxblox_tango_interface/core/tango_block_interface.h>
+// #include "voxblox_tango_interface/core/tango_block_interface.h"
+// #include "../voxblox_tango_interface/include/voxblox_tango_interface/core/tango_block_interface.h"
 #include <pybind11/eigen.h>
+#include <pybind11/stl.h>
 #include <pybind11/pybind11.h>
 namespace py = pybind11;
 
@@ -54,6 +57,15 @@ void block_bind(py::module& m) {
 
       .def("set_updated", &EsdfBlock::set_updated)
       .def("set_has_data", &EsdfBlock::set_has_data)
+      .def("deserializeFromIntegers", &EsdfBlock::deserializeFromIntegers)
+    //   .def("deserializeFromIntegers", 
+    //         (void (EsdfBlock::*)(const std::vector<uint32_t>& data,const bool audit)) &
+    //           EsdfBlock::deserializeFromIntegers)
+    //   .def("getVoxelByLinearerIndex", &EsdfBlock::getVoxelByLinearIndex)
+      .def("getVoxelByLinearIndex",
+           (EsdfVoxel&  (EsdfBlock::*)(size_t index)) &
+               EsdfBlock::getVoxelByLinearIndex,
+               py::return_value_policy::reference_internal)
       .def("getVoxelByCoordinates",
            (EsdfVoxel * (EsdfBlock::*)(const Point& coords)) &
                EsdfBlock::getVoxelPtrByCoordinates,

@@ -49,17 +49,6 @@ set("${PROJECT_NAME}_SRCS"
   # src/simulation_server.cc
   src/transformer.cc
   src/tsdf_server.cc
-  # ../voxblox/src/core/block.cc
-  # ../voxblox/src/core/esdf_map.cc
-  # ../voxblox/src/core/tsdf_map.cc
-  # ../voxblox/src/integrator/esdf_integrator.cc
-  # ../voxblox/src/integrator/esdf_occ_integrator.cc
-  # ../voxblox/src/integrator/integrator_utils.cc
-  # ../voxblox/src/integrator/merge_integration.cc
-  # ../voxblox/src/integrator/tsdf_integrator.cc
-  # ../voxblox/src/io/mesh_ply.cc
-  # ../voxblox/src/io/sdf_ply.cc
-  # ../voxblox/src/mesh/marching_cubes.cc
   )
 
 #############
@@ -100,8 +89,11 @@ if(HAVE_PYBIND11)
   message("Building Python bindings for voxblox_ros")
   pybind11_add_module(voxblox_rospy
     ${${PROJECT_NAME}_SRCS}
-    src/pybind11/esdf_server_bind.cc
-    src/pybind11/bind.cc)
+    # src/pybind11/esdf_server_bind.cc
+    src/pybind11/esdf_map_message_bind.cc
+    src/pybind11/layer_msg_bind.cc
+    src/pybind11/bind.cc
+    ../voxblox/src/pybind11/layer_bind.cc)
   set_target_properties(voxblox_rospy PROPERTIES LINKER_LANGUAGE CXX)
   target_link_libraries(voxblox_rospy PUBLIC ${PROJECT_NAME}_proto
                                              ${PROTOBUF_LIBRARIES})

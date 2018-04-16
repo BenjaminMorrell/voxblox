@@ -1,7 +1,7 @@
 <launch>
 
   <arg name="voxel_size" default="0.2"/>
-  <arg name="generate_esdf" default="false" />
+  <arg name="generate_esdf" default="true" />
 
    <node name="esdf_listener" pkg="voxblox_ros" type="esdf_server" output="screen" args="-alsologtostderr" clear_params="true">
     <!-- Don't remap the point cloud topic, so it doesn't try to process point clouds -->
