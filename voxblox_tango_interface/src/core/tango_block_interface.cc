@@ -19,7 +19,8 @@ void TangoBlockInterface::deserializeFromIntegers(
     TsdfVoxel& voxel = voxels_[voxel_idx];
 
     // TODO(mereweth@jpl.nasa.gov) - is this the best way to unpack NTSDF?
-
+    std::cout << "Metres to ntsdf are: " << meters_to_ntsdf_ << endl;
+    std::cout << "Max voxel weight is: " << max_ntsdf_voxel_weight_ << endl;
     if (audit) {
       voxel.distance = static_cast<int16_t>(bytes_1 >> 16);
       voxel.weight = static_cast<uint16_t>(bytes_1 & 0x0000FFFF);

@@ -227,4 +227,14 @@ void EsdfServer::clear() {
   TsdfServer::clear();
 }
 
+// Specific accessor functions for esdf maps.
+  // Returns true if the point exists in the map AND is observed.
+  // Call directly into function in esdf map
+bool EsdfServer::getDistanceAtPosition(const Eigen::Vector3d& position,
+                             double* distance){
+  
+  return esdf_map_->getDistanceAtPosition(position, distance);
+
+}
+
 }  // namespace voxblox
