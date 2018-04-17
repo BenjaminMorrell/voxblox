@@ -91,7 +91,7 @@ class Planner:
     self.planner.update_path_markers()
     
   def updateEsdfObstacle(self):
-    # TODO Some check on if the ESDF Map contains anything
+    
     if not ('fsp_out_map' in self.global_dict):
       print("No ESDF loaded to use in planner. Not planning")
       return
@@ -202,15 +202,9 @@ class Planner:
     
     # State for the start
     self.start = self.planner.get_state_at_time(startTime)
-    # output = self.planner.on_animate_eval_callback(startTime)
-    # TODO Get out the derivatives as well - to set the new location to be continuous
-
-    # Change the start state
-    # self.start['x'] = output[1]
-    # self.start['y'] = output[2]
-    # self.start['z'] = output[3]
-    # self.start['yaw'] = 0.0 # TODO convert from the quaterion to get the yaw
+    
     self.updateStart(self.start)
+    
     # Reset planned trajectory time
     self.planner.qr_polytraj.update_times([0],self.tmax-startTime,defer=True)
 
