@@ -38,6 +38,7 @@ class Planner:
     self.setpointCount = 0
     self.time = 0.0
     self.tmax = 100.0
+    self.averageVel = 0.07 # m/s
 
     # Times for replanning
     self.replanHz = 0.1
@@ -57,16 +58,33 @@ class Planner:
     waypoints = dict()
     for key in self.start.keys():
       waypoints[key] = np.zeros([1,2])
-      waypoints[key][0,0] = self.start[key]
-      waypoints[key][0,1] = self.goal[key]
+      waypoints[key][0,0] = self.start[key][0]
+      waypoints[key][0,1] = self.goal[key][0]
 
     # Set time to complete the trajectory
+    self.computeTrajTime()
     self.planner.seed_times = np.array([self.tmax])
     
     self.global_dict['disc_out_waypoints'] = waypoints
 
     # Initial guess to load waypoints and initialise planner
     self.planner.on_disc_updated_signal()
+
+  def computeTrajTime(self):
+    if not'x' in self.start.keys():
+      print("Need start and end first")
+      return 
+    
+    # Compute the total time based on the Euclidean distance from start to end and the desired average velocity
+    dist =  0.0
+    for key in ['x','y','z']:
+      dist += (self.goal[key][0] - self.start[key][0])**2
+
+    dist = np.sqrt(dist)
+
+    self.tmax = dist/self.averageVel
+
+    print("\n\t\tDistance is {}, Traj time is {} s".format(dist,self.tmax))
 
   def updateStart(self,position):
     # position is a dict with keys x, y, z
@@ -78,8 +96,14 @@ class Planner:
 
   def updateWaypoints(self,start, goal):
 
+    self.computeTrajTime()
     self.updateStart(start)
     self.updateGoal(goal)
+
+  def resetGoalinClass(self):
+    # Take goal from goal in the planner - if moved in the gui
+    for key in self.goal.keys():
+      self.goal[key] = self.planner.qr_polytraj.waypoints[key][:,-1] # Last waypoint
 
   def planTrajectory(self):
     # Runs the optimisation and updates the trajectory 
@@ -168,6 +192,7 @@ class Planner:
 
     if self.time > self.tmax:
       self.time = self.tmax
+      print("Time set to tmax = {}".format(self.tmax))
 
     # Fill message
     msg = PoseStamped()
@@ -194,6 +219,8 @@ class Planner:
 
     return msg
 
+  
+
   def resetStartFromTraj(self):
     # Resets the start location and the planned time
 
@@ -204,11 +231,20 @@ class Planner:
     self.start = self.planner.get_state_at_time(startTime)
     
     self.updateStart(self.start)
+
+    # Get goal from GUI modifications
+    self.resetGoalinClass()
+
+    # Reset traj time
+    self.computeTrajTime() # updates self.tmax
     
     # Reset planned trajectory time
-    self.planner.qr_polytraj.update_times([0],self.tmax-startTime,defer=True)
+    self.planner.qr_polytraj.update_times([0],self.tmax,defer=True)
+    # self.planner.qr_polytraj.update_times([0],self.tmax-startTime,defer=True)
 
-    self.tmax -= startTime
+    
+    # self.tmax -= startTime
+    
 
     print("\n\nRESET: New duration is {}\nStart Location is: {}".format(self.tmax,self.start))
 
@@ -221,14 +257,14 @@ if __name__ == '__main__':
   plan = Planner()
 
   # Set up start and goal 
-  plan.start['x'] = 5.0
-  plan.start['y'] = 0.9
-  plan.start['z'] = 4.5
-  plan.start['yaw'] = 0.0
-  plan.goal['x'] = 12.0
-  plan.goal['y'] = 0.9
-  plan.goal['z'] = 4.5
-  plan.goal['yaw'] = 0.0
+  plan.start['x'] = [5.0]
+  plan.start['y'] = [1.1]
+  plan.start['z'] = [4.5]
+  plan.start['yaw'] = [0.0]
+  plan.goal['x'] = [12.0]
+  plan.goal['y'] = [0.9]
+  plan.goal['z'] = [4.5]
+  plan.goal['yaw'] = [0.0]
 
   plan.initialisePlanner()
 
