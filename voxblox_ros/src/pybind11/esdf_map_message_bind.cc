@@ -17,20 +17,22 @@ using layerMsg = voxblox_msgs::Layer;
 
 void esdf_map_message_bind(py::module &m){
 
-    m.def("deserializeMsgToLayer", voxblox::deserializeMsgToLayer<EsdfVoxel>);
+    // m.def("deserializeMsgToLayer", (bool (*)(layerMsg&, EsdfLayer&)) voxblox::deserializeMsgToLayer<EsdfVoxel>);
+    // m.def("deserializeMsgToLayer", (bool (*)(layerMsg&, EsdfLayer&)) &deserializeMsg);
 
-    // m.def("deserializeMsgToLayer",
-    // [](const layerMsg& layer_msg, EsdfLayer* layer){
+    m.def("deserializeMsgToLayer",
+    // [](layerMsg, EsdfLayer){
+    [](const layerMsg& layer_msg, EsdfLayer* layer){
     //     // Do some checks
 
     //     // Run function:
-    //     bool success =
-    //         voxblox::deserializeMsgToLayer<EsdfVoxel>(layer_msg, layer);
+        bool success =
+            voxblox::deserializeMsgToLayer<EsdfVoxel>(layer_msg, layer);
 
         // if (!success) {
         //     ROS_ERROR_THROTTLE(10, "Got an invalid ESDF map message!");
         // } else {
         //     ROS_INFO_ONCE("Got an ESDF map from ROS topic!");
         // }
-    // });
+    });
 }
