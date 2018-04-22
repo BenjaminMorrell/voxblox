@@ -38,7 +38,7 @@ class Planner:
     self.setpointCount = 0
     self.time = 0.0
     self.tmax = 100.0
-    self.averageVel = 0.07 # m/s
+    self.averageVel = 0.25 # m/s
 
     # Times for replanning
     self.replanHz = 0.1
@@ -257,13 +257,21 @@ if __name__ == '__main__':
   plan = Planner()
 
   # Set up start and goal 
-  plan.start['x'] = [5.0]
-  plan.start['y'] = [1.1]
-  plan.start['z'] = [4.5]
+  # plan.start['x'] = [-10.0]
+  # plan.start['y'] = [0.0]
+  # plan.start['z'] = [1.5]
+  # plan.start['yaw'] = [0.0]
+  # plan.goal['x'] = [20.0]
+  # plan.goal['y'] = [0.0]
+  # plan.goal['z'] = [1.5]
+  # plan.goal['yaw'] = [0.0]
+  plan.start['x'] = [-9.0]
+  plan.start['y'] = [0.0]
+  plan.start['z'] = [0.0]
   plan.start['yaw'] = [0.0]
-  plan.goal['x'] = [12.0]
-  plan.goal['y'] = [0.9]
-  plan.goal['z'] = [4.5]
+  plan.goal['x'] = [27.0]
+  plan.goal['y'] = [0.0]
+  plan.goal['z'] = [0.0]
   plan.goal['yaw'] = [0.0]
 
   plan.initialisePlanner()
