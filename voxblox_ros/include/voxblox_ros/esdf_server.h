@@ -58,6 +58,9 @@ class EsdfServer : public TsdfServer {
   void setEsdfMaxDistance(float max_distance);
 
   virtual void clear();
+  
+  bool getDistanceAtPosition(const Eigen::Vector3d& position,
+                             double* distance);
 
  protected:
   // Publish markers for visualization.

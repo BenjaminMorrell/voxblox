@@ -39,6 +39,7 @@ void layer_bind(py::module &m) {
       .def("saveToFile", (bool (EsdfLayer::*)(const std::string &) const) &
                              EsdfLayer::saveToFile)
       .def("allocateBlockPtrByCoordinates",
-           &EsdfLayer::allocateBlockPtrByCoordinates)
+           &EsdfLayer::allocateBlockPtrByCoordinates)   
+      .def("allocateBlockPtrByIndex", &EsdfLayer::allocateBlockPtrByIndex)
       .def("removeBlockByCoordinates", &EsdfLayer::removeBlockByCoordinates);
 }
