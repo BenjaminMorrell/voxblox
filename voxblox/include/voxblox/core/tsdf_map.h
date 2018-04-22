@@ -17,7 +17,7 @@ class TsdfMap {
 
   typedef std::shared_ptr<TsdfMap> Ptr;
 
-  struct Config {
+  struct Config 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     FloatingPoint tsdf_voxel_size = 0.2;

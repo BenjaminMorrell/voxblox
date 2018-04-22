@@ -3,7 +3,7 @@
 
   <arg name="play_bag" default="true" />
   <!-- <arg name="bag_file" default="/Users/helen/data/euroc_datasets/V2_01_easy.bag"/> -->
-  <arg name="bag_file" default="/Users/helen/data/euroc_datasets/euroc_v1_01_easy.bag"/>
+  <arg name="bag_file" default="/home/amme1/Data/V1_01_easy.bag"/>
 
   <arg name="voxel_size" default="0.20"/>
   <arg name="generate_esdf" default="false" />
