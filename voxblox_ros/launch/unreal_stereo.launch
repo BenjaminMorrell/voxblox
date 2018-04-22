@@ -2,25 +2,17 @@
 <launch>
   <arg name="voxel_size" default="0.1"/>
   <arg name="generate_esdf" default="true" />
-<<<<<<< HEAD
 
 
-=======
->>>>>>> d632141f9ff67794d2e337f4a3e2e5a3c66ae71d
   <node name="voxblox_node" pkg="voxblox_ros" type="voxblox_node" output="screen" args="-alsologtostderr" clear_params="true">
     <remap from="pointcloud" to="camera/points2"/>
     <param name="tsdf_voxel_size" value="$(arg voxel_size)" />
     <param name="tsdf_voxels_per_side" value="16" />
     <param name="voxel_carving_enabled" value="false" />
     <param name="color_mode" value="colors" />
-<<<<<<< HEAD
     <param name="use_tf_transforms" value="false" />
     <param name="verbose" value="true" />
 
-=======
-    <param name="use_tf_transforms" value="true" />
-    <param name="verbose" value="true" />
->>>>>>> d632141f9ff67794d2e337f4a3e2e5a3c66ae71d
     <param name="update_mesh_every_n_sec" value="1.0" />
     <param name="generate_esdf" value="$(arg generate_esdf)" />
     <param name="slice_level" value="1.0" />
@@ -31,13 +23,9 @@
     <param name="min_ray_length_m" value="0.1" />
     <param name="esdf_max_distance_m" value="20.0" />
     <param name="esdf_default_distance_m" value="20.0" />
-<<<<<<< HEAD
 
     <rosparam file="$(find voxblox_ros)/cfg/unreal_stereo.yaml"/>
 
-=======
-    <rosparam file="$(find voxblox_ros)/cfg/unreal_stereo.yaml"/>
->>>>>>> d632141f9ff67794d2e337f4a3e2e5a3c66ae71d
     <param name="mesh_filename" value="$(find voxblox_ros)/mesh_results/$(anon unreal).ply" />
   </node>
 </launch>
