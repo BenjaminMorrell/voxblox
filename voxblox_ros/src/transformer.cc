@@ -11,7 +11,7 @@ Transformer::Transformer(const ros::NodeHandle& nh,
     : nh_(nh),
       nh_private_(nh_private),
       world_frame_("world"),
-      sensor_frame_(""),
+      sensor_frame_("cam_optical"),
       use_tf_transforms_(true),
       timestamp_tolerance_ns_(10000000) {
   nh_private_.param("world_frame", world_frame_, world_frame_);
