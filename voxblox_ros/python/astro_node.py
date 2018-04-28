@@ -172,6 +172,9 @@ class Planner:
       self.updateEsdfObstacle()
       self.planTrajectory()
       print("\n\n\t\t COMPLETED TRAJECTORY PLAN \n\n")
+
+      print("\n\n\t\t SENDING TRAJECTORY... \n\n")
+      self.planner.on_send_trajectory_button_click()
       
       # Reset times:
       # self.timeOfReplan = self.time
@@ -248,6 +251,13 @@ class Planner:
 
     print("\n\nRESET: New duration is {}\nStart Location is: {}".format(self.tmax,self.start))
 
+  def goalCallback(self, msg):
+    # Reads a call message from Unreal and resets the goal, then replans
+
+    # Reset goal
+    pass
+
+
 if __name__ == '__main__':
 
   # Start node
@@ -279,8 +289,11 @@ if __name__ == '__main__':
   # Example use case:
   plan.updateWaypoints(plan.start,plan.goal)
 
-  # Create Subscriber
+  # Create Subscriber for ESDF map
   rospy.Subscriber("/esdf_server/esdf_map_out",Layer,plan.readESDFMapMessage)
+
+  # Create Subscriber for goal
+  # rospy.Subscriber("/goal_unreal",PoseStamped,plan.goalCallback)
 
   # pub = rospy.Publisher("topic",String,queue_size=1)
   setpoint_pub = rospy.Publisher("setpoint",PoseStamped,queue_size=1)

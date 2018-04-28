@@ -5,11 +5,11 @@
   <!-- <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"/> -->
 
   <!-- Static Transforms -->
-  <node pkg="tf" type="static_transform_publisher" name="body_to_cam_tf" args="0.5 0 0 -1.5708 0 -1.5708 starting_body starting_cam 10"/>
-  <node pkg="tf" type="static_transform_publisher" name="dummy_orbslam" args="0 0 0 0 0 0 starting_cam cam_optical 10"/>
+  <!-- <node pkg="tf" type="static_transform_publisher" name="body_to_cam_tf" args="0.5 0 0 -1.5708 0 -1.5708 starting_body starting_cam 10"/> -->
+  <!-- <node pkg="tf" type="static_transform_publisher" name="dummy_orbslam" args="0 0 0 0 0 0 starting_cam cam_optical 10"/> -->
 
   <!-- Camera info publisher -->
-  <node name="cam_info" pkg="unreal_camera_info_pub" type="camera_info_publisher"/>
+  <!-- <node name="cam_info" pkg="unreal_camera_info_pub" type="camera_info_publisher"/> -->
   <!-- Think about setting output="screen" if you want to see what they are doing -->
 
   <!-- Stereo image processor -->
