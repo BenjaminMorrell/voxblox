@@ -40,7 +40,7 @@ class Planner:
     self.setpointCount = 0
     self.time = 0.0
     self.tmax = 100.0
-    self.averageVel = 1.25 # m/s
+    self.averageVel = 0.25 # m/s
 
     # Times for replanning
     self.replanHz = 0.1
@@ -168,18 +168,8 @@ class Planner:
 
     # Run planner
     if self.time > 1/self.replanHz or self.firstPlan: # If the time since the last replan is more than the desired period
-      # self.resetStartFromTraj()
-      
-      # Reset Traj
-      self.resetGoalinClass()
-
-      # Reset traj time
-      self.computeTrajTime() # updates self.tmax
-    
-      # Reset planned trajectory time
-      self.planner.qr_polytraj.update_times([0],self.tmax,defer=True)
-
-
+      self.resetStartFromTraj()
+ 
       print("\n\nTime to replan ({}): Running ASTRO\n\n".format(self.time))
       self.time = 0.0 # Starting at the start of the new trajectory
       self.updateEsdfObstacle()
@@ -282,7 +272,7 @@ class Planner:
 
     # Run planner
     if True: #self.time > 1/self.replanHz or self.firstPlan: # If the time since the last replan is more than the desired period
-
+      self.resetStartFromTraj()
       print("\n\nTime to replan ({}): Running ASTRO\n\n".format(self.time))
       self.time = 0.0 # Starting at the start of the new trajectory
       self.updateEsdfObstacle()
@@ -292,15 +282,13 @@ class Planner:
       print("\n\n\t\t SENDING TRAJECTORY... \n\n")
       self.planner.on_send_trajectory_button_click()
 
+    def updateStartFromTF(self,trans,rot):
+      # Callback to update start from tf
+      self.start['x'][0] = trans[0]
+      self.start['y'][0] = trans[1]
+      self.start['z'][0] = trans[2]
 
-  def updateStartFromTF(self,trans,rot):
-    # Callback to update start from tf
-    
-    self.start['x'][0] = trans[0]
-    self.start['y'][0] = trans[1]
-    self.start['z'][0] = trans[2]
-
-    self.updateStart(self.start)
+      self.updateStart(self.start)
 
 
 
@@ -345,7 +333,7 @@ if __name__ == '__main__':
   setpoint_pub = rospy.Publisher("setpoint",PoseStamped,queue_size=1)
 
   # TF listener
-  tf_listener = tf.TransformListener()
+  # tf_listener = tf.TransformListener()
 
 
   # Spin
@@ -355,12 +343,12 @@ if __name__ == '__main__':
 
   r = rospy.Rate(rateHz) # 10hz
   while not rospy.is_shutdown():
-      try:
-        (trans, rot) = tf_listener.lookupTransform('/world', '/body', rospy.Time(0)) # time argument just gets the latest
-      except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-        continue
+      # try:
+      #   (trans, rot) = tf_listener.lookupTransform('/world', '/body', rospy.Time(0)) # time argument just gets the latest
+      # except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+      #   continue
   
-      plan.updateStartFromTF(trans,rot)
+      # plan.updateStartFromTF(trans,rot)
       # msg = plan.getSetpointAtTime()
       # setpoint_pub.publish(msg)
       # increment time
