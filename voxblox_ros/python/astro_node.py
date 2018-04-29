@@ -172,6 +172,9 @@ class Planner:
       self.updateEsdfObstacle()
       self.planTrajectory()
       print("\n\n\t\t COMPLETED TRAJECTORY PLAN \n\n")
+
+      print("\n\n\t\t SENDING TRAJECTORY... \n\n")
+      self.planner.on_send_trajectory_button_click()
       
       # Reset times:
       # self.timeOfReplan = self.time
@@ -248,6 +251,35 @@ class Planner:
 
     print("\n\nRESET: New duration is {}\nStart Location is: {}".format(self.tmax,self.start))
 
+  def goalCallback(self, msg):
+    # Reads a call message from Unreal and resets the goal, then replans
+    self.goal['x'][0] = msg.pose.position.x
+    self.goal['y'][0] = msg.pose.position.y
+    self.goal['z'][0] = msg.pose.position.z
+
+    # Update goal
+    self.updateGoal(self.goal)
+
+    # Reset traj time
+    self.computeTrajTime() # updates self.tmax
+    
+    # Reset planned trajectory time
+    self.planner.qr_polytraj.update_times([0],self.tmax,defer=True)
+    # self.planner.qr_polytraj.update_times([0],self.tmax-startTime,defer=True)
+
+    # Run planner
+    if True: #self.time > 1/self.replanHz or self.firstPlan: # If the time since the last replan is more than the desired period
+      self.resetStartFromTraj()
+      print("\n\nTime to replan ({}): Running ASTRO\n\n".format(self.time))
+      self.time = 0.0 # Starting at the start of the new trajectory
+      self.updateEsdfObstacle()
+      self.planTrajectory()
+      print("\n\n\t\t COMPLETED TRAJECTORY PLAN \n\n")
+
+      print("\n\n\t\t SENDING TRAJECTORY... \n\n")
+      self.planner.on_send_trajectory_button_click()
+
+
 if __name__ == '__main__':
 
   # Start node
@@ -279,8 +311,11 @@ if __name__ == '__main__':
   # Example use case:
   plan.updateWaypoints(plan.start,plan.goal)
 
-  # Create Subscriber
+  # Create Subscriber for ESDF map
   rospy.Subscriber("/esdf_server/esdf_map_out",Layer,plan.readESDFMapMessage)
+
+  # Create Subscriber for goal
+  rospy.Subscriber("/goal_unreal",PoseStamped,plan.goalCallback)
 
   # pub = rospy.Publisher("topic",String,queue_size=1)
   setpoint_pub = rospy.Publisher("setpoint",PoseStamped,queue_size=1)
