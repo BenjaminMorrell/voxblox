@@ -1,3 +1,4 @@
+#!
 import rospy
 import sys, os
 from python_qt_binding.QtWidgets import QApplication
@@ -14,6 +15,7 @@ import numpy as np
 
 from std_msgs.msg import String
 from geometry_msgs.msg import PoseStamped
+from std_msgs.msg import Time
 
 import torq_gcs
 from torq_gcs.plan.astro_plan import QRPolyTrajGUI
@@ -39,6 +41,7 @@ class Planner:
     # Time for publishing
     self.setpointCount = 0
     self.time = 0.0
+    self.elapsedTime = 0.0
     self.tmax = 100.0
     self.averageVel = 1.25 # m/s
 
@@ -241,7 +244,7 @@ class Planner:
     # Resets the start location and the planned time
 
     # Time to start replan
-    startTime = self.time + self.startDeltaT
+    startTime = self.elapsedTime + self.startDeltaT
     
     # State for the start
     self.start = self.planner.get_state_at_time(startTime)
@@ -296,11 +299,18 @@ class Planner:
   def updateStartFromTF(self,trans,rot):
     # Callback to update start from tf
     
+    # Only updates the position (not the acceleration)
     self.start['x'][0] = trans[0]
     self.start['y'][0] = trans[1]
     self.start['z'][0] = trans[2]
 
     self.updateStart(self.start)
+
+  def updateElapsedTime(self, msg):
+
+    self.elapsedTime = msg.data
+
+    print("Elapased time updated to {}".format(self.elapsedTime))
 
 
 
@@ -341,11 +351,18 @@ if __name__ == '__main__':
   # Create Subscriber for goal
   rospy.Subscriber("/goal_unreal",PoseStamped,plan.goalCallback)
 
+  # Create Subscriber for elapsed time 
+  rospy.Subscriber("/elapsed_time", Time, plan.updateElapsedTime)
+
   # pub = rospy.Publisher("topic",String,queue_size=1)
   setpoint_pub = rospy.Publisher("setpoint",PoseStamped,queue_size=1)
 
-  # TF listener
-  tf_listener = tf.TransformListener()
+  # Flag to subscribe to the tf from unreal to update the start position for planning
+  bUseTFToUpdateStart = False
+
+  if bUseTFToUpdateStart:
+    # TF listener
+    tf_listener = tf.TransformListener()
 
 
   # Spin
@@ -353,14 +370,15 @@ if __name__ == '__main__':
 
   rateHz = 5.0
 
-  r = rospy.Rate(rateHz) # 10hz
+  r = rospy.Rate(rateHz) 
   while not rospy.is_shutdown():
-      try:
-        (trans, rot) = tf_listener.lookupTransform('/world', '/body', rospy.Time(0)) # time argument just gets the latest
-      except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-        continue
-  
-      plan.updateStartFromTF(trans,rot)
+      if bUseTFToUpdateStart:
+        try:
+          (trans, rot) = tf_listener.lookupTransform('/world', '/body', rospy.Time(0)) # time argument just gets the latest
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+          continue
+    
+        plan.updateStartFromTF(trans,rot)
       # msg = plan.getSetpointAtTime()
       # setpoint_pub.publish(msg)
       # increment time
