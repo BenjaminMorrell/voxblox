@@ -14,8 +14,8 @@
 
   <!-- Stereo image processor -->
   <node ns="camera" name="stereo" pkg="stereo_image_proc" type="stereo_image_proc" output="screen" >
-    <param name="_approximate_sync" value="True" />
-    <param name="_queue_size" value="10" />
+    <param name="approximate_sync" value="True" />
+    <param name="queue_size" value="10" />
   </node>
    
 
