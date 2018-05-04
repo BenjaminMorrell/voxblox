@@ -43,10 +43,10 @@ class Planner:
     self.time = 0.0
     self.elapsedTime = 0.0
     self.tmax = 100.0
-    self.averageVel = 0.25 # m/s
+    self.averageVel = 0.7 # m/s
 
     # Times for replanning
-    self.replanHz = 0.1
+    self.replanHz = 0.2
     self.timeOfReplan = 0.0
     self.startDeltaT = 0.5 # Time ahead of current time to use as the start location
     self.firstPlan = True
@@ -59,9 +59,9 @@ class Planner:
     self.planner = torq_gcs.plan.astro_plan.QRPolyTrajGUI(self.global_dict,defer=True,curv_func=False)
 
     # Weightings
-    self.planner.esdf_weight = 0.1
+    self.planner.esdf_weight = 0.2
     self.planner.quad_buffer = 0.3
-    self.planner.inflate_buffer = 10.0
+    self.planner.inflate_buffer = 11.0
 
   def initialisePlanner(self):
     # Waypoints
@@ -201,7 +201,7 @@ class Planner:
       self.planner.on_send_trajectory_button_click()
       
       # Reset times:
-      # self.timeOfReplan = self.time
+      self.timeOfReplan = self.time
       
 
       self.firstPlan = False
@@ -256,6 +256,7 @@ class Planner:
     
     # State for the start
     self.start = self.planner.get_state_at_time(startTime)
+    #self.start = self.planner.get_state_at_time(self.elapsedTime)
     
     self.updateStart(self.start)
 
@@ -280,6 +281,8 @@ class Planner:
     self.goal['x'][0] = msg.pose.position.x
     self.goal['y'][0] = msg.pose.position.y
     self.goal['z'][0] = msg.pose.position.z
+
+    print("\n\n\t\t READ new goal \n\n".format(self.goal))
 
     # Update goal
     self.updateGoal(self.goal)
@@ -319,7 +322,7 @@ class Planner:
     import pdb; pdb.set_trace()
     self.elapsedTime = float(msg.data)/10.0**6
 
-    print("Elapased time updated to {}".format(self.elapsedTime))
+    print("Elapsed time updated to {}".format(self.elapsedTime))
 
 
 
@@ -340,12 +343,12 @@ if __name__ == '__main__':
   # plan.goal['y'] = [0.0]
   # plan.goal['z'] = [1.5]
   # plan.goal['yaw'] = [0.0]
-  plan.start['x'] = [-10.0]
+  plan.start['x'] = [-15.0]
   plan.start['y'] = [0.0]
-  plan.start['z'] = [-1.0]
+  plan.start['z'] = [10.0]
   plan.start['yaw'] = [0.0]
   plan.goal['x'] = [27.0]
-  plan.goal['y'] = [0.0]
+  plan.goal['y'] = [10.0]
   plan.goal['z'] = [-2.0]
   plan.goal['yaw'] = [0.0]
 
@@ -359,10 +362,10 @@ if __name__ == '__main__':
   plan.updateWaypoints(plan.start,plan.goal)
 
   # Create Subscriber for ESDF map
-  # rospy.Subscriber("/esdf_server/esdf_map_out",Layer,plan.readESDFMapMessage)
+  rospy.Subscriber("/esdf_server/esdf_map_out",Layer,plan.readESDFMapMessage)
 
   # Create Subscriber for goal
-  # rospy.Subscriber("/goal_unreal",PoseStamped,plan.goalCallback)
+  rospy.Subscriber("/goal_unreal",PoseStamped,plan.goalCallback)
 
   # Create Subscriber for elapsed time 
   rospy.Subscriber("elapsed_time_unreal",UInt32,plan.updateElapsedTime)
@@ -371,7 +374,7 @@ if __name__ == '__main__':
   # setpoint_pub = rospy.Publisher("setpoint",PoseStamped,queue_size=1)
 
   # Flag to subscribe to the tf from unreal to update the start position for planning
-  bUseTFToUpdateStart = False
+  bUseTFToUpdateStart = True
 
   if bUseTFToUpdateStart:
     # TF listener
