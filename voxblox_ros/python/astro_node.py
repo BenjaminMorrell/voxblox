@@ -15,7 +15,7 @@ import numpy as np
 
 from std_msgs.msg import String
 from geometry_msgs.msg import PoseStamped
-from std_msgs.msg import UInt32
+from std_msgs.msg import Int32
 
 import torq_gcs
 from torq_gcs.plan.astro_plan import QRPolyTrajGUI
@@ -151,6 +151,10 @@ class Planner:
 
   def readESDFMapMessage(self,msg):
 
+    # First plan to be without obstacles
+    if not plan.firstPlan:
+      return
+
     # rospy.loginfo(rospy.get_caller_id() + "In callback from esdf listening in python")
 
     # Try to pull out parts of the message
@@ -179,34 +183,8 @@ class Planner:
 
     # Run planner
     if self.time > 1/self.replanHz or self.firstPlan: # If the time since the last replan is more than the desired period
-      self.resetStartFromTraj()
-      
-      # Reset Traj
-      self.resetGoalinClass()
-
-      # Reset traj time
-      self.computeTrajTime() # updates self.tmax
-    
-      # Reset planned trajectory time
-      self.planner.qr_polytraj.update_times([0],self.tmax,defer=True)
-
-
-      print("\n\nTime to replan ({}): Running ASTRO\n\n".format(self.time))
-      self.time = 0.0 # Starting at the start of the new trajectory
-      self.updateEsdfObstacle()
-      self.planTrajectory()
-      print("\n\n\t\t COMPLETED TRAJECTORY PLAN \n\n")
-
-      print("\n\n\t\t SENDING TRAJECTORY... \n\n")
-      self.planner.on_send_trajectory_button_click()
-      
-      # Reset times:
-      self.timeOfReplan = self.time
-      
-
-      self.firstPlan = False
-      # self.saveTrajectory()
-      
+      self.setupAndRunTrajectory()
+            
 
   def getSetpointAtTime(self):
 
@@ -296,15 +274,16 @@ class Planner:
 
     # Run planner
     if True: #self.time > 1/self.replanHz or self.firstPlan: # If the time since the last replan is more than the desired period
-      self.resetStartFromTraj()
-      print("\n\nTime to replan ({}): Running ASTRO\n\n".format(self.time))
-      self.time = 0.0 # Starting at the start of the new trajectory
-      self.updateEsdfObstacle()
-      self.planTrajectory()
-      print("\n\n\t\t COMPLETED TRAJECTORY PLAN \n\n")
+      self.setupAndRunTrajectory()
+      # self.resetStartFromTraj()
+      # print("\n\nTime to replan ({}): Running ASTRO\n\n".format(self.time))
+      # self.time = 0.0 # Starting at the start of the new trajectory
+      # self.updateEsdfObstacle()
+      # self.planTrajectory()
+      # print("\n\n\t\t COMPLETED TRAJECTORY PLAN \n\n")
 
-      print("\n\n\t\t SENDING TRAJECTORY... \n\n")
-      self.planner.on_send_trajectory_button_click()
+      # print("\n\n\t\t SENDING TRAJECTORY... \n\n")
+      # self.planner.on_send_trajectory_button_click()
 
 
   def updateStartFromTF(self,trans,rot):
@@ -319,10 +298,28 @@ class Planner:
 
   def updateElapsedTime(self, msg):
 
-    import pdb; pdb.set_trace()
     self.elapsedTime = float(msg.data)/10.0**6
 
     print("Elapsed time updated to {}".format(self.elapsedTime))
+
+  def setupAndRunTrajectory(self):
+    
+    self.resetStartFromTraj()
+    print("\n\nTime to replan ({}): Running ASTRO\n\n".format(self.time))
+    self.time = 0.0 # Starting at the start of the new trajectory
+
+    if not self.firstPlan:
+      self.updateEsdfObstacle()
+    
+    self.planTrajectory()
+    print("\n\n\t\t COMPLETED TRAJECTORY PLAN \n\n")
+    
+    print("\n\n\t\t SENDING TRAJECTORY... \n\n")
+    self.planner.on_send_trajectory_button_click()
+    
+
+    self.firstPlan = False
+    # self.saveTrajectory()
 
 
 
@@ -368,7 +365,7 @@ if __name__ == '__main__':
   rospy.Subscriber("/goal_unreal",PoseStamped,plan.goalCallback)
 
   # Create Subscriber for elapsed time 
-  rospy.Subscriber("elapsed_time_unreal",UInt32,plan.updateElapsedTime)
+  rospy.Subscriber("/elapsed_time_unreal",Int32,plan.updateElapsedTime)
 
   # pub = rospy.Publisher("topic",String,queue_size=1)
   # setpoint_pub = rospy.Publisher("setpoint",PoseStamped,queue_size=1)
@@ -380,9 +377,6 @@ if __name__ == '__main__':
     # TF listener
     tf_listener = tf.TransformListener()
 
-
-  # Spin
-  rospy.spin()
 
   rateHz = 5.0
 
