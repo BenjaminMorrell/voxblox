@@ -51,6 +51,8 @@ class Planner:
     self.startDeltaT = 0.5 # Time ahead of current time to use as the start location
     self.firstPlan = True
 
+    self.blockUpdate = False
+
     # Initialise the map
     self.esdfLayer = voxblox.EsdfLayer(0.2,16) # Start with default values
     self.global_dict['fsp_out_map'] = voxblox.EsdfMap(self.esdfLayer)# simple implementation now
@@ -152,7 +154,7 @@ class Planner:
   def readESDFMapMessage(self,msg):
 
     # First plan to be without obstacles
-    if not plan.firstPlan:
+    if not plan.firstPlan or self.blockUpdate:
       return
 
     # rospy.loginfo(rospy.get_caller_id() + "In callback from esdf listening in python")
@@ -255,6 +257,9 @@ class Planner:
     print("\n\nRESET: New duration is {}\nStart Location is: {}".format(self.tmax,self.start))
 
   def goalCallback(self, msg):
+
+    if self.blockUpdate:
+      return
     # Reads a call message from Unreal and resets the goal, then replans
     self.goal['x'][0] = msg.pose.position.x
     self.goal['y'][0] = msg.pose.position.y
@@ -303,6 +308,8 @@ class Planner:
     print("Elapsed time updated to {}".format(self.elapsedTime))
 
   def setupAndRunTrajectory(self):
+
+    self.blockUpdate = True # Flag to stop the ESDF being updated for the plan
     
     self.resetStartFromTraj()
     print("\n\nTime to replan ({}): Running ASTRO\n\n".format(self.time))
@@ -320,6 +327,8 @@ class Planner:
 
     self.firstPlan = False
     # self.saveTrajectory()
+
+    self.blockUpdate = False
 
 
 
