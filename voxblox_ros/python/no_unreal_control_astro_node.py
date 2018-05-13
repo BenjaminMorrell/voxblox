@@ -1,4 +1,3 @@
-#!
 import rospy
 import sys, os
 from python_qt_binding.QtWidgets import QApplication
@@ -15,7 +14,6 @@ import numpy as np
 
 from std_msgs.msg import String
 from geometry_msgs.msg import PoseStamped
-from std_msgs.msg import Int32
 
 import torq_gcs
 from torq_gcs.plan.astro_plan import QRPolyTrajGUI
@@ -41,17 +39,14 @@ class Planner:
     # Time for publishing
     self.setpointCount = 0
     self.time = 0.0
-    self.elapsedTime = 0.0
     self.tmax = 100.0
-    self.averageVel = 0.7 # m/s
+    self.averageVel = 0.25 # m/s
 
     # Times for replanning
-    self.replanHz = 0.2
+    self.replanHz = 0.1
     self.timeOfReplan = 0.0
     self.startDeltaT = 0.5 # Time ahead of current time to use as the start location
     self.firstPlan = True
-
-    self.blockUpdate = False
 
     # Initialise the map
     self.esdfLayer = voxblox.EsdfLayer(0.2,16) # Start with default values
@@ -59,11 +54,6 @@ class Planner:
 
     # Init planner GCS object
     self.planner = torq_gcs.plan.astro_plan.QRPolyTrajGUI(self.global_dict,defer=True,curv_func=False)
-
-    # Weightings
-    self.planner.esdf_weight = 0.2
-    self.planner.quad_buffer = 0.3
-    self.planner.inflate_buffer = 11.0
 
   def initialisePlanner(self):
     # Waypoints
@@ -81,9 +71,6 @@ class Planner:
 
     # Initial guess to load waypoints and initialise planner
     self.planner.on_disc_updated_signal()
-
-    # Set mutation strength
-    self.planner.qr_polytraj.mutation_strength = 1.0
 
   def computeTrajTime(self):
     if not'x' in self.start.keys():
@@ -122,10 +109,10 @@ class Planner:
 
   def planTrajectory(self):
     # Runs the optimisation and updates the trajectory 
-    # self.planner.on_run_astro_button_click()
-    
-    self.planner.qr_polytraj.exit_on_feasible = True    
-    self.planner.qr_polytraj.optimise(mutate_serial=4)
+    self.planner.on_run_astro_button_click()
+
+    self.planner.qr_polytraj.exit_on_feasible = True
+    self.planner.qr_polytraj.optimise(mutate_serial=3)
     self.planner.qr_polytraj.get_trajectory()
     self.planner.update_path_markers()
     
@@ -139,7 +126,7 @@ class Planner:
     self.planner.qr_polytraj.remove_esdf_constraint()
 
     # Add ESDF constraint
-    self.planner.load_esdf_obstacle(sum_func=True, custom_weighting=False)
+    self.planner.load_esdf_obstacle()
 
   def saveTrajectory(self,filename="/home/bjm/TORQ/gcs_ws/src/torq/torq_gcs/waypoints/test_traj.traj"):
 
@@ -152,10 +139,6 @@ class Planner:
       pickle.dump(qrp_out, f, 2 )
 
   def readESDFMapMessage(self,msg):
-
-    # First plan to be without obstacles
-    if not plan.firstPlan or self.blockUpdate:
-      return
 
     # rospy.loginfo(rospy.get_caller_id() + "In callback from esdf listening in python")
 
@@ -185,8 +168,24 @@ class Planner:
 
     # Run planner
     if self.time > 1/self.replanHz or self.firstPlan: # If the time since the last replan is more than the desired period
-      self.setupAndRunTrajectory()
-            
+      self.resetStartFromTraj()
+ 
+      print("\n\nTime to replan ({}): Running ASTRO\n\n".format(self.time))
+      self.time = 0.0 # Starting at the start of the new trajectory
+      self.updateEsdfObstacle()
+      self.planTrajectory()
+      print("\n\n\t\t COMPLETED TRAJECTORY PLAN \n\n")
+
+      print("\n\n\t\t SENDING TRAJECTORY... \n\n")
+      self.planner.on_send_trajectory_button_click()
+      
+      # Reset times:
+      # self.timeOfReplan = self.time
+      
+
+      self.firstPlan = False
+      # self.saveTrajectory()
+      
 
   def getSetpointAtTime(self):
 
@@ -232,11 +231,10 @@ class Planner:
     # Resets the start location and the planned time
 
     # Time to start replan
-    startTime = self.elapsedTime + self.startDeltaT
+    startTime = self.time + self.startDeltaT
     
     # State for the start
     self.start = self.planner.get_state_at_time(startTime)
-    #self.start = self.planner.get_state_at_time(self.elapsedTime)
     
     self.updateStart(self.start)
 
@@ -257,15 +255,10 @@ class Planner:
     print("\n\nRESET: New duration is {}\nStart Location is: {}".format(self.tmax,self.start))
 
   def goalCallback(self, msg):
-
-    if self.blockUpdate:
-      return
     # Reads a call message from Unreal and resets the goal, then replans
     self.goal['x'][0] = msg.pose.position.x
     self.goal['y'][0] = msg.pose.position.y
     self.goal['z'][0] = msg.pose.position.z
-
-    print("\n\n\t\t READ new goal \n\n".format(self.goal))
 
     # Update goal
     self.updateGoal(self.goal)
@@ -279,56 +272,23 @@ class Planner:
 
     # Run planner
     if True: #self.time > 1/self.replanHz or self.firstPlan: # If the time since the last replan is more than the desired period
-      self.setupAndRunTrajectory()
-      # self.resetStartFromTraj()
-      # print("\n\nTime to replan ({}): Running ASTRO\n\n".format(self.time))
-      # self.time = 0.0 # Starting at the start of the new trajectory
-      # self.updateEsdfObstacle()
-      # self.planTrajectory()
-      # print("\n\n\t\t COMPLETED TRAJECTORY PLAN \n\n")
-
-      # print("\n\n\t\t SENDING TRAJECTORY... \n\n")
-      # self.planner.on_send_trajectory_button_click()
-
-
-  def updateStartFromTF(self,trans,rot):
-    # Callback to update start from tf
-    
-    # Only updates the position (not the acceleration)
-    self.start['x'][0] = trans[0]
-    self.start['y'][0] = trans[1]
-    self.start['z'][0] = trans[2]
-
-    self.updateStart(self.start)
-
-  def updateElapsedTime(self, msg):
-
-    self.elapsedTime = float(msg.data)/10.0**6
-
-    print("Elapsed time updated to {}".format(self.elapsedTime))
-
-  def setupAndRunTrajectory(self):
-
-    self.blockUpdate = True # Flag to stop the ESDF being updated for the plan
-    
-    self.resetStartFromTraj()
-    print("\n\nTime to replan ({}): Running ASTRO\n\n".format(self.time))
-    self.time = 0.0 # Starting at the start of the new trajectory
-
-    if not self.firstPlan:
+      self.resetStartFromTraj()
+      print("\n\nTime to replan ({}): Running ASTRO\n\n".format(self.time))
+      self.time = 0.0 # Starting at the start of the new trajectory
       self.updateEsdfObstacle()
-    
-    self.planTrajectory()
-    print("\n\n\t\t COMPLETED TRAJECTORY PLAN \n\n")
-    
-    print("\n\n\t\t SENDING TRAJECTORY... \n\n")
-    self.planner.on_send_trajectory_button_click()
-    
+      self.planTrajectory()
+      print("\n\n\t\t COMPLETED TRAJECTORY PLAN \n\n")
 
-    self.firstPlan = False
-    # self.saveTrajectory()
+      print("\n\n\t\t SENDING TRAJECTORY... \n\n")
+      self.planner.on_send_trajectory_button_click()
 
-    self.blockUpdate = False
+    def updateStartFromTF(self,trans,rot):
+      # Callback to update start from tf
+      self.start['x'][0] = trans[0]
+      self.start['y'][0] = trans[1]
+      self.start['z'][0] = trans[2]
+
+      self.updateStart(self.start)
 
 
 
@@ -349,20 +309,16 @@ if __name__ == '__main__':
   # plan.goal['y'] = [0.0]
   # plan.goal['z'] = [1.5]
   # plan.goal['yaw'] = [0.0]
-  plan.start['x'] = [-15.0]
+  plan.start['x'] = [-9.0]
   plan.start['y'] = [0.0]
-  plan.start['z'] = [10.0]
+  plan.start['z'] = [0.0]
   plan.start['yaw'] = [0.0]
   plan.goal['x'] = [27.0]
-  plan.goal['y'] = [10.0]
-  plan.goal['z'] = [-2.0]
+  plan.goal['y'] = [0.0]
+  plan.goal['z'] = [0.0]
   plan.goal['yaw'] = [0.0]
 
   plan.initialisePlanner()
-
-  # msg = UInt32()
-  # msg.data = 234
-  # plan.updateElapsedTime(msg)
 
   # Example use case:
   plan.updateWaypoints(plan.start,plan.goal)
@@ -373,31 +329,26 @@ if __name__ == '__main__':
   # Create Subscriber for goal
   rospy.Subscriber("/goal_unreal",PoseStamped,plan.goalCallback)
 
-  # Create Subscriber for elapsed time 
-  rospy.Subscriber("/elapsed_time_unreal",Int32,plan.updateElapsedTime)
-
   # pub = rospy.Publisher("topic",String,queue_size=1)
-  # setpoint_pub = rospy.Publisher("setpoint",PoseStamped,queue_size=1)
+  setpoint_pub = rospy.Publisher("setpoint",PoseStamped,queue_size=1)
 
-  # Flag to subscribe to the tf from unreal to update the start position for planning
-  bUseTFToUpdateStart = True
+  # TF listener
+  # tf_listener = tf.TransformListener()
 
-  if bUseTFToUpdateStart:
-    # TF listener
-    tf_listener = tf.TransformListener()
 
+  # Spin
+  # rospy.spin()
 
   rateHz = 5.0
 
-  r = rospy.Rate(rateHz) 
+  r = rospy.Rate(rateHz) # 10hz
   while not rospy.is_shutdown():
-      if bUseTFToUpdateStart:
-        try:
-          (trans, rot) = tf_listener.lookupTransform('/world', '/body', rospy.Time(0)) # time argument just gets the latest
-        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-          continue
-    
-        plan.updateStartFromTF(trans,rot)
+      # try:
+      #   (trans, rot) = tf_listener.lookupTransform('/world', '/body', rospy.Time(0)) # time argument just gets the latest
+      # except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+      #   continue
+  
+      # plan.updateStartFromTF(trans,rot)
       # msg = plan.getSetpointAtTime()
       # setpoint_pub.publish(msg)
       # increment time

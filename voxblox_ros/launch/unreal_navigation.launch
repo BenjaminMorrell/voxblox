@@ -5,22 +5,22 @@
   <!-- <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"/> -->
 
   <!-- Static Transforms -->
-  <node pkg="tf" type="static_transform_publisher" name="body_to_cam_tf" args="0.5 0 0 -1.5708 0 -1.5708 starting_body starting_cam 10"/>
-  <node pkg="tf" type="static_transform_publisher" name="dummy_orbslam" args="0 0 0 0 0 0 starting_cam cam_optical 10"/>
+  <!-- <node pkg="tf" type="static_transform_publisher" name="body_to_cam_tf" args="0.5 0 0 -1.5708 0 -1.5708 starting_body starting_cam 10"/> -->
+  <!-- <node pkg="tf" type="static_transform_publisher" name="dummy_orbslam" args="0 0 0 0 0 0 starting_cam cam_optical 10"/> -->
 
   <!-- Camera info publisher -->
-  <node name="cam_info" pkg="unreal_camera_info_pub" type="camera_info_publisher"/>
+  <!-- <node name="cam_info" pkg="unreal_camera_info_pub" type="camera_info_publisher"/> -->
   <!-- Think about setting output="screen" if you want to see what they are doing -->
 
   <!-- Stereo image processor -->
   <node ns="camera" name="stereo" pkg="stereo_image_proc" type="stereo_image_proc" output="screen" >
-    <param name="_approximate_sync" value="True" />
-    <param name="_queue_size" value="10" />
+    <param name="approximate_sync" value="True" />
+    <param name="queue_size" value="10" />
   </node>
    
 
   <!-- voxblox launch (including a voxblox launch file -->
-  <!-- <include file="$(find voxblox_ros)/launch/unreal_stereo.launch"/> -->
+  <!-- <include file="$(find voxblox_ros)/launch/esdf_server_test.launch"/> -->
 
   <!-- Run ORB-SLAM -->
   <!-- <node name="ORB_SLAM" pkg="ORB_SLAM2" type="Stereo" args="/home/amme2/Development/ORB_SLAM_ROS/Vocabulary/ORBvoc.txt /home/amme2/Development/ORB_SLAM_ROS/Examples/Stereo/Unreal.yaml false"/> -->

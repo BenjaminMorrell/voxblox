@@ -10,7 +10,7 @@
   <node pkg="tf" type="static_transform_publisher" name="dummy_orbslam" args="0 0 0 0 0 0 starting_cam cam_optical 10"/>
 
   <!-- Camera info publisher -->
-  <node name="cam_info" pkg="unreal_camera_info_pub" type="camera_info_publisher"/>
+  <!-- <node name="cam_info" pkg="unreal_camera_info_pub" type="camera_info_publisher"/> -->
   <!-- Think about setting output="screen" if you want to see what they are doing -->
 
 </launch>
