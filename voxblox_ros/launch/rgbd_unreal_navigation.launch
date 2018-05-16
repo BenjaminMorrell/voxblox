@@ -19,10 +19,11 @@
 
   <!-- Convert it into a point cloud -->
   <node pkg="nodelet" type="nodelet" name="cloudify"
-        args="load depth_image_proc/point_cloud_xyzrgb record_player_manager --no-bond">
-    <remap from="depth_registered/image_rect" to="camera/depth_registered/image_raw"/>
-    <remap from="depth_registered/points" to="camera/points2"/>
-    <remap from="rgb/image_rect_color" to="camera/rgb/image_raw"/>
-    <remap from="rgb/camera_info" to="camera/rgb/camera_info"/>
+        args="load depth_image_proc/point_cloud_xyz record_player_manager --no-bond">
+    <remap from="image_rect" to="camera/depth_registered/image"/>
+    <!-- <remap from="camera_info" to="camera/rgb/camera_info"/> -->
+    <remap from="points" to="camera/points2"/>
+    <param name="approximate_sync" value="True" />
+    <param name="queue_size" value="10" />
   </node>
 </launch>
