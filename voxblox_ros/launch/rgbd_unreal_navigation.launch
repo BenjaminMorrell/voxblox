@@ -15,12 +15,10 @@
     />
 
 
-
-
   <!-- Convert it into a point cloud -->
   <node pkg="nodelet" type="nodelet" name="cloudify"
         args="load depth_image_proc/point_cloud_xyz record_player_manager --no-bond">
-    <remap from="image_rect" to="camera/depth_registered/image"/>
+    <remap from="image_rect" to="camera/depth_registered/image_raw"/>
     <!-- <remap from="camera_info" to="camera/rgb/camera_info"/> -->
     <remap from="points" to="camera/points2"/>
     <param name="approximate_sync" value="True" />
