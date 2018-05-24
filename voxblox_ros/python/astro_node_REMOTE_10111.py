@@ -46,7 +46,7 @@ class Planner:
     self.averageVel = 0.01 # m/s
 
     # Times for replanning
-    self.replanHz = 0.025
+    self.replanHz = 0.1
     self.timeOfReplan = 0.0
     self.startDeltaT = 0.5 # Time ahead of current time to use as the start location
     self.firstPlan = True
@@ -61,10 +61,9 @@ class Planner:
     self.planner = torq_gcs.plan.astro_plan.QRPolyTrajGUI(self.global_dict,defer=True,curv_func=False)
 
     # Weightings
-    self.planner.esdf_weight = 0.2
-    
-    self.planner.quad_buffer = 0.6
-    self.planner.inflate_buffer = 0.0
+    self.planner.esdf_weight = 1.0
+    self.planner.quad_buffer = 0.3
+    self.planner.inflate_buffer = 11.0
 
   def initialisePlanner(self):
     # Waypoints
@@ -126,10 +125,9 @@ class Planner:
     # self.planner.on_run_astro_button_click()
     
     self.planner.qr_polytraj.exit_on_feasible = True    
-    self.planner.qr_polytraj.optimise(mutate_serial=5)
+    self.planner.qr_polytraj.optimise(mutate_serial=10)
     self.planner.qr_polytraj.get_trajectory()
     self.planner.update_path_markers()
-    self.saveTrajectory()
     
   def updateEsdfObstacle(self):
     
@@ -152,8 +150,6 @@ class Planner:
       qrp_out.remove_esdf_constraint()
 
       pickle.dump(qrp_out, f, 2 )
-
-    scipy.io.savemat('/home/amme2/Development/Results/Traj/traj_opt.mat', qrp_out.state_combined)
 
   def readESDFMapMessage(self,msg):
 
@@ -187,7 +183,7 @@ class Planner:
 
     self.global_dict['fsp_out_map'] = esdfMap
 
-    self.updateEsdfObstacle()
+    # # Run planner
     # if self.time > 1/self.replanHz or self.firstPlan: # If the time since the last replan is more than the desired period
     #   self.setupAndRunTrajectory()
             
@@ -280,10 +276,6 @@ class Planner:
     # Reset planned trajectory time
     self.planner.qr_polytraj.update_times([0],self.tmax,defer=True)
     # self.planner.qr_polytraj.update_times([0],self.tmax-startTime,defer=True)
-
-    # # Run planner
-    # if True: #self.time > 1/self.replanHz or self.firstPlan: # If the time since the last replan is more than the desired period
-    #   self.setupAndRunTrajectory()
 
     # Run planner
     # if True: #self.time > 1/self.replanHz or self.firstPlan: # If the time since the last replan is more than the desired period
@@ -410,31 +402,32 @@ if __name__ == '__main__':
 
   r = rospy.Rate(rateHz) 
   while not rospy.is_shutdown():
+      
 
-    if timer > 1.0/ plan.replanHz:
+      if timer > 1.0/ plan.replanHz:
         # plan.firstPlan = False
         timer = 0.0
         plan.setupAndRunTrajectory()
 
-    plan.time += 1.0/rateHz
-    timer += 1.0/rateHz 
-
-    if bUseTFToUpdateStart:
-      try:
-        (trans, rot) = tf_listener.lookupTransform('/world', '/body', rospy.Time(0)) # time argument just gets the latest
-      except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-        continue
-    
-        # plan.updateStartFromTF(trans,rot)
-
-      # timer += 1.0/rateHz 
-      # if timer > 1.0/ plan.replanHz:
-      #   plan.firstPlan = False
-      #   plan.setupAndRunTrajectory()
-      #   timer = 0.0
-      # # msg = plan.getSetpointAtTime()
-      # # setpoint_pub.publish(msg)
+      
+      # msg = plan.getSetpointAtTime()
+      # setpoint_pub.publish(msg)
       # increment time
-      # plan.time += 1.0/rateHz # TODO WARNING - this is not going to accurately track time
-    r.sleep()
+      plan.time += 1.0/rateHz # TODO WARNING - this is not going to accurately track time
+      timer += 1.0/rateHz 
 
+      if bUseTFToUpdateStart:
+        try:
+          (trans, rot) = tf_listener.lookupTransform('/world', '/cam_optical', rospy.Time(0)) # time argument just gets the latest
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+          continue
+    
+        plan.updateStartFromTF(trans,rot)
+      r.sleep()
+      
+      
+
+
+  
+
+  

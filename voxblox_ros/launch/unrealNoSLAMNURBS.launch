@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-15"?>
 <launch>
   <!-- NOTE: Launch ROSBRIDGE FIRST -->
-  <!-- Launch file for running Stereo, Voxblox and planner - no ORBSLAM -->
+  <!-- Launch file for running Stereo-->
 
   <arg name="bLaunchPlanner" default="true"/>
   <arg name="highResolution" default="1"/>
   
   <!-- Static Transforms -->
-  <node pkg="tf" type="static_transform_publisher" name="body_to_cam_tf" args="0.5 0 0 -1.5708 0 -1.5708 body cam_optical 10"/>
+  <!-- <node pkg="tf" type="static_transform_publisher" name="body_to_cam_tf" args="0.5 0 0 -1.5708 0 -1.5708 body cam_optical 10"/> -->
+  <node pkg="tf" type="static_transform_publisher" name="body_to_cam_tf" args="0.5 0 0 -1.5708 0 -1.5708 starting_body starting_cam 10"/>
   <node pkg="tf" type="static_transform_publisher" name="link_torq_voxblox" args="0 0 0 0 0 0 local_origin world 10"/>
 
   <!-- Camera info publisher -->
@@ -18,9 +19,6 @@
     <param name="approximate_sync" value="True" />
     <param name="queue_size" value="10" />
   </node>
-
-  <!-- voxblox launch (including a voxblox launch file) -->
-  <include file="$(find voxblox_ros)/launch/esdf_server_test.launch"/>
 
   <!-- <group if="$(arg bLaunchPlanner)"> -->
     <!-- Run ASTRO planner node -->

@@ -141,7 +141,7 @@ class Planner:
     self.planner.qr_polytraj.remove_esdf_constraint()
 
     # Add ESDF constraint
-    self.planner.load_esdf_obstacle(sum_func=True, custom_weighting=True)
+    self.planner.load_esdf_obstacle(sum_func=True, custom_weighting=False)
 
   def saveTrajectory(self,filename="/home/bjm/TORQ/gcs_ws/src/torq/torq_gcs/waypoints/test_traj.traj"):
 
@@ -188,6 +188,8 @@ class Planner:
     self.global_dict['fsp_out_map'] = esdfMap
 
     self.updateEsdfObstacle()
+
+    # Run planner
     # if self.time > 1/self.replanHz or self.firstPlan: # If the time since the last replan is more than the desired period
     #   self.setupAndRunTrajectory()
             
@@ -284,10 +286,6 @@ class Planner:
     # # Run planner
     # if True: #self.time > 1/self.replanHz or self.firstPlan: # If the time since the last replan is more than the desired period
     #   self.setupAndRunTrajectory()
-
-    # Run planner
-    # if True: #self.time > 1/self.replanHz or self.firstPlan: # If the time since the last replan is more than the desired period
-      # self.setupAndRunTrajectory()
       # self.resetStartFromTraj()
       # print("\n\nTime to replan ({}): Running ASTRO\n\n".format(self.time))
       # self.time = 0.0 # Starting at the start of the new trajectory
@@ -357,23 +355,13 @@ if __name__ == '__main__':
   # plan.goal['y'] = [0.0]
   # plan.goal['z'] = [1.5]
   # plan.goal['yaw'] = [0.0]
-  # plan.start['x'] = [-15.0]
-  # plan.start['y'] = [0.0]
-  # plan.start['z'] = [10.0]
-  # plan.start['yaw'] = [0.0]
-  # plan.goal['x'] = [27.0]
-  # plan.goal['y'] = [10.0]
-  # plan.goal['z'] = [-2.0]
-  # plan.goal['yaw'] = [0.0]
-
-   # For 67P test case
-  plan.start['x'] = [-12.0]
+  plan.start['x'] = [-15.0]
   plan.start['y'] = [0.0]
-  plan.start['z'] = [0.0]
+  plan.start['z'] = [10.0]
   plan.start['yaw'] = [0.0]
-  plan.goal['x'] = [11.5]
-  plan.goal['y'] = [-2.0]
-  plan.goal['z'] = [0.0]
+  plan.goal['x'] = [27.0]
+  plan.goal['y'] = [10.0]
+  plan.goal['z'] = [-2.0]
   plan.goal['yaw'] = [0.0]
 
   plan.initialisePlanner()
@@ -437,4 +425,10 @@ if __name__ == '__main__':
       # increment time
       # plan.time += 1.0/rateHz # TODO WARNING - this is not going to accurately track time
     r.sleep()
+      
+      
 
+
+  
+
+  

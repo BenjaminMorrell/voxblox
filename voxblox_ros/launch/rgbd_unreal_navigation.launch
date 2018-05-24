@@ -1,0 +1,27 @@
+<launch>
+
+ 
+  <!-- Nodelet manager for this pipeline -->
+  <node pkg="nodelet" type="nodelet" args="manager"
+        name="record_player_manager" output="screen"/>
+
+  <!-- Debayer and undistort the rgb image
+       TODO: this should be split into nodelets -->
+  <node 
+    pkg="image_proc" 
+    type="image_proc" 
+    name="ip_node1" 
+    ns="camera/rgb"
+    />
+
+
+  <!-- Convert it into a point cloud -->
+  <node pkg="nodelet" type="nodelet" name="cloudify"
+        args="load depth_image_proc/point_cloud_xyz record_player_manager --no-bond">
+    <remap from="image_rect" to="camera/depth_registered/image_raw"/>
+    <!-- <remap from="camera_info" to="camera/rgb/camera_info"/> -->
+    <remap from="points" to="camera/points2"/>
+    <param name="approximate_sync" value="True" />
+    <param name="queue_size" value="10" />
+  </node>
+</launch>
